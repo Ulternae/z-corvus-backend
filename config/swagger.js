@@ -19,7 +19,7 @@ const swaggerOptions = {
                 description: 'Development server'
             },
             {
-                url: 'https://api.zcorvus.com',
+                url: 'https://z-corvus-backend.fly.dev',
                 description: 'Production server'
             }
         ],
