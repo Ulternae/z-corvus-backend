@@ -29,7 +29,7 @@ describe('Pro Role Token Verification', () => {
     afterEach(async () => {
         // Limpiar datos de prueba
         if (userId) {
-            await query('DELETE FROM users WHERE id = ?', [userId]);
+            await query('DELETE FROM user WHERE id = ?', [userId]);
             userId = null;
         }
         if (tokenId) {
@@ -83,6 +83,9 @@ describe('Pro Role Token Verification', () => {
 
     describe('Pro Role Verification', () => {
         beforeEach(async () => {
+            // Limpiar usuario previo por si quedó de ejecución fallida
+            await query('DELETE FROM user WHERE email = ?', ['prousertest@test.com']);
+
             // Crear usuario de prueba
             userId = generateUUID();
             await User.create({
@@ -112,7 +115,7 @@ describe('Pro Role Token Verification', () => {
             await User.updateToken(userId, tokenId);
 
             // Actualizar rol a Pro
-            await query('UPDATE users SET roles_id = ? WHERE id = ?', [proRoleId, userId]);
+            await query('UPDATE user SET roles_id = ? WHERE id = ?', [proRoleId, userId]);
 
             // Verificar que el usuario tiene rol Pro
             const result = await User.verifyAndUpdateProRole(userId);
@@ -138,7 +141,7 @@ describe('Pro Role Token Verification', () => {
 
             // Asignar token al usuario y establecer como Pro
             await User.updateToken(userId, tokenId);
-            await query('UPDATE users SET roles_id = ? WHERE id = ?', [proRoleId, userId]);
+            await query('UPDATE user SET roles_id = ? WHERE id = ?', [proRoleId, userId]);
 
             // Verificar y actualizar rol (debería degradar a User)
             const result = await User.verifyAndUpdateProRole(userId);
@@ -152,7 +155,7 @@ describe('Pro Role Token Verification', () => {
 
         it('should NOT allow Pro role without active token', async () => {
             // Intentar establecer rol Pro sin token
-            await query('UPDATE users SET roles_id = ? WHERE id = ?', [proRoleId, userId]);
+            await query('UPDATE user SET roles_id = ? WHERE id = ?', [proRoleId, userId]);
 
             // Verificar que se degrada automáticamente
             const result = await User.verifyAndUpdateProRole(userId);
@@ -175,6 +178,9 @@ describe('Pro Role Token Verification', () => {
 
     describe('hasActiveToken method', () => {
         beforeEach(async () => {
+            // Limpiar usuario previo por si quedó de ejecución fallida
+            await query('DELETE FROM user WHERE email = ?', ['tokentest@test.com']);
+
             userId = generateUUID();
             await User.create({
                 id: userId,

@@ -11,6 +11,10 @@ describe('Token Endpoints & Pro User 2FA Requirements', () => {
     let tokenId, twoFactorSecret;
 
     beforeAll(async () => {
+        // Limpiar datos previos (por si quedaron de ejecución fallida)
+        await query('DELETE FROM user WHERE email IN (?, ?, ?)',
+            ['admin_token@test.com', 'user_token@test.com', 'pro_user_token@test.com']);
+
         // Crear admin
         adminId = generateUUID();
         await User.create({
@@ -83,7 +87,7 @@ describe('Token Endpoints & Pro User 2FA Requirements', () => {
 
     afterAll(async () => {
         // Limpiar
-        await query('DELETE FROM users WHERE email IN (?, ?, ?)', [
+        await query('DELETE FROM user WHERE email IN (?, ?, ?)', [
             'admin_token@test.com',
             'user_token@test.com',
             'pro_token@test.com'

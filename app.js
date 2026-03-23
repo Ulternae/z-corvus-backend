@@ -10,6 +10,11 @@ const { swaggerUi, swaggerDocs, swaggerUiOptions } = require('./config/swagger')
 
 const app = express();
 
+// Webhook raw body ANTES de otros middlewares (para Stripe)
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req, res, next) => {
+  next();
+});
+
 // Middlewares
 app.use(helmet());
 app.use(cors());

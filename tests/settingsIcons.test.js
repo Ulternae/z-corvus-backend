@@ -16,6 +16,10 @@ describe('Settings Icons CRUD Endpoints', () => {
     let userRoleId = 2;
 
     beforeAll(async () => {
+        // Limpiar datos previos (por si quedaron de ejecución fallida)
+        await query('DELETE FROM user WHERE email IN (?, ?)',
+            ['adminsettings@test.com', 'usersettings@test.com']);
+
         // Asegurar que existan los roles básicos
         await query(`
             INSERT OR IGNORE INTO roles (id, name) VALUES 
@@ -70,7 +74,7 @@ describe('Settings Icons CRUD Endpoints', () => {
 
     afterAll(async () => {
         // Limpiar datos de prueba
-        await query('DELETE FROM users WHERE email IN (?, ?)',
+        await query('DELETE FROM user WHERE email IN (?, ?)',
             ['adminsettings@test.com', 'usersettings@test.com']);
 
         // Limpiar settings de prueba

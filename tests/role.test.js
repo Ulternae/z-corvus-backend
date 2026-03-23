@@ -15,6 +15,10 @@ describe('Role CRUD Endpoints', () => {
     let userRoleId = 2;
 
     beforeAll(async () => {
+        // Limpiar datos previos (por si quedaron de ejecución fallida)
+        await query('DELETE FROM user WHERE email IN (?, ?)',
+            ['adminrole@test.com', 'userrole@test.com']);
+
         // Asegurar que existan los roles básicos
         await query(`
             INSERT OR IGNORE INTO roles (id, name) VALUES 
@@ -58,7 +62,7 @@ describe('Role CRUD Endpoints', () => {
 
     afterAll(async () => {
         // Limpiar datos de prueba
-        await query('DELETE FROM users WHERE email IN (?, ?)',
+        await query('DELETE FROM user WHERE email IN (?, ?)',
             ['adminrole@test.com', 'userrole@test.com']);
 
         // Limpiar roles de prueba (excepto admin, user y pro)

@@ -20,6 +20,15 @@ const { authenticateToken } = require('../middlewares/auth.middleware');
  *     description: |
  *       Register a new user. Returns only access token (5 min duration).
  *       Use POST /api/auth/refresh-token to obtain a refresh token.
+ *       
+ *       **ROLES:**
+ *       - 1 = Admin (use only for creating admin accounts)
+ *       - 2 = User/Free (default)
+ *       - 3 = Pro (assigned automatically via Stripe payment)
+ *       
+ *       **Creating an Admin:**
+ *       To create an admin account, include `"roles_id": 1` in the request body.
+ *       This bypasses the default role assignment.
  *     requestBody:
  *       required: true
  *       content:
@@ -42,7 +51,9 @@ const { authenticateToken } = require('../middlewares/auth.middleware');
  *                 example: password123
  *               roles_id:
  *                 type: integer
+ *                 description: Role ID (1=Admin, 2=User, 3=Pro). Default is 2 if not specified. Use 1 to create admin account.
  *                 example: 2
+ *                 enum: [1, 2, 3]
  *     responses:
  *       201:
  *         description: User registered successfully

@@ -13,7 +13,7 @@ class User {
         const sql = `
       SELECT u.id, u.username, u.email, u.roles_id, u.token_id, u.settings_icons_id,
              u.two_factor_enabled, r.name as role_name
-      FROM users u
+      FROM user u
       LEFT JOIN roles r ON u.roles_id = r.id
     `;
         return await db.query(sql);
@@ -26,7 +26,7 @@ class User {
         const sql = `
       SELECT u.id, u.username, u.email, u.password, u.roles_id, u.token_id, u.settings_icons_id,
              u.two_factor_enabled, u.two_factor_secret, r.name as role_name
-      FROM users u
+      FROM user u
       LEFT JOIN roles r ON u.roles_id = r.id
       WHERE u.id = ?
     `;
@@ -40,7 +40,7 @@ class User {
     static async findByEmail(email) {
         const sql = `
       SELECT u.*, r.name as role_name
-      FROM users u
+      FROM user u
       LEFT JOIN roles r ON u.roles_id = r.id
       WHERE u.email = ?
     `;
@@ -54,7 +54,7 @@ class User {
     static async findByUsername(username) {
         const sql = `
       SELECT u.*, r.name as role_name
-      FROM users u
+      FROM user u
       LEFT JOIN roles r ON u.roles_id = r.id
       WHERE u.username = ?
     `;
@@ -78,7 +78,7 @@ class User {
             password: hashedPassword
         };
 
-        await db.insert('users', userToInsert);
+        await db.insert('user', userToInsert);
         return userId;
     }
 
@@ -91,14 +91,14 @@ class User {
             userData.password = await bcrypt.hash(userData.password, 10);
         }
 
-        return await db.update('users', userData, { id });
+        return await db.update('user', userData, { id });
     }
 
     /**
      * Eliminar usuario
      */
     static async delete(id) {
-        return await db.deleteRow('users', { id });
+        return await db.deleteRow('user', { id });
     }
 
     /**
@@ -112,14 +112,21 @@ class User {
      * Actualizar token del usuario
      */
     static async updateToken(userId, tokenId) {
-        return await db.update('users', { token_id: tokenId }, { id: userId });
+        return await db.update('user', { token_id: tokenId }, { id: userId });
+    }
+
+    /**
+     * Actualizar rol del usuario
+     */
+    static async updateRole(userId, roleId) {
+        return await db.update('user', { roles_id: roleId }, { id: userId });
     }
 
     /**
      * Actualizar settings icons del usuario
      */
     static async updateSettings(userId, settingsIconsId) {
-        return await db.update('users', { settings_icons_id: settingsIconsId }, { id: userId });
+        return await db.update('user', { settings_icons_id: settingsIconsId }, { id: userId });
     }
 
     /**
@@ -129,7 +136,7 @@ class User {
     static async verifyAndUpdateProRole(userId) {
         const sql = `
             SELECT u.id, u.roles_id, u.token_id, t.finish_date
-            FROM users u
+            FROM user u
             LEFT JOIN token t ON u.token_id = t.id
             WHERE u.id = ?
         `;
@@ -142,13 +149,13 @@ class User {
 
         // Si tiene rol Pro (3) pero NO tiene token activo, degradar a user (2)
         if (user.roles_id === 3 && !hasActiveToken) {
-            await db.update('users', { roles_id: 2 }, { id: userId });
+            await db.update('user', { roles_id: 2 }, { id: userId });
             return { changed: true, newRole: 2, reason: 'Token expired or missing' };
         }
 
         // Si tiene token activo pero NO es Pro, actualizar a Pro (3)
         if (hasActiveToken && user.roles_id === 2) {
-            await db.update('users', { roles_id: 3 }, { id: userId });
+            await db.update('user', { roles_id: 3 }, { id: userId });
             return { changed: true, newRole: 3, reason: 'Active token detected' };
         }
 
@@ -161,7 +168,7 @@ class User {
     static async hasActiveToken(userId) {
         const sql = `
             SELECT t.* FROM token t
-            INNER JOIN users u ON u.token_id = t.id
+            INNER JOIN user u ON u.token_id = t.id
             WHERE u.id = ? AND t.finish_date > datetime('now')
         `;
         const result = await db.query(sql, [userId]);
@@ -172,7 +179,7 @@ class User {
      * Habilitar 2FA para un usuario
      */
     static async enable2FA(userId, secret) {
-        return await db.update('users', {
+        return await db.update('user', {
             two_factor_enabled: 1,
             two_factor_secret: secret
         }, { id: userId });
@@ -182,7 +189,7 @@ class User {
      * Deshabilitar 2FA para un usuario
      */
     static async disable2FA(userId) {
-        return await db.update('users', {
+        return await db.update('user', {
             two_factor_enabled: 0,
             two_factor_secret: null
         }, { id: userId });

@@ -13,6 +13,7 @@ yarn-error.log*
 
 # IDE
 .vscode/
+.agents
 .idea/
 *.swp
 *.swo
@@ -23,6 +24,7 @@ yarn-error.log*
 Thumbs.db
 database.sql
 database.sql.backup
+skills-lock.json
 
 # Logs
 logs/

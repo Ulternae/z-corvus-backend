@@ -9,7 +9,7 @@ const { parseTimeToMs } = require('../utils/time');
  */
 const register = async (req, res, next) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, roles_id } = req.body;
 
         // Verificar si el email ya existe
         const existingEmail = await User.findByEmail(email);
@@ -23,10 +23,11 @@ const register = async (req, res, next) => {
             return errorResponse(res, 'Username already taken', 400);
         }
 
-        // TODOS los usuarios nuevos son 'user' (ID 2) por defecto
-        // Solo pueden ser Pro (ID 3) si tienen un token activo
-        // Solo pueden ser Admin (ID 1) si un admin los cambia manualmente
-        const roleId = 2; // Siempre user/free al registrarse
+        // Permitir especificar el rol en el registro
+        // Por defecto es 'user' (ID 2) si no se especifica
+        // Puede ser Admin (ID 1) si se proporciona roles_id: 1
+        // Pro (ID 3) normalmente se asigna mediante Stripe, pero también se permite aquí
+        const roleId = roles_id || 2;
 
         // Crear usuario
         const userId = await User.create({
@@ -241,7 +242,16 @@ const refreshAccessToken = async (req, res, next) => {
         // Generar nuevo access token
         const accessToken = generateAccessToken(user.id, user.email, user.role_name);
 
-        return successResponse(res, { accessToken }, 'Token refreshed successfully');
+        return successResponse(res, {
+            accessToken,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role_name,
+                two_factor_enabled: user.two_factor_enabled === 1
+            }
+        }, 'Token refreshed successfully');
 
     } catch (error) {
         console.error('Refresh token error:', error);

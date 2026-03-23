@@ -11,6 +11,9 @@ describe('Two-Factor Authentication (2FA)', () => {
     let secret;
 
     beforeAll(async () => {
+        // Limpiar datos previos (por si quedaron de ejecución fallida)
+        await query('DELETE FROM user WHERE email = ?', ['test2fa@test.com']);
+
         // Crear usuario de prueba
         userId = generateUUID();
         await User.create({
@@ -34,7 +37,7 @@ describe('Two-Factor Authentication (2FA)', () => {
 
     afterAll(async () => {
         // Limpiar datos de prueba
-        await query('DELETE FROM users WHERE email = ?', ['test2fa@test.com']);
+        await query('DELETE FROM user WHERE email = ?', ['test2fa@test.com']);
     });
 
     describe('POST /api/auth/2fa/setup', () => {

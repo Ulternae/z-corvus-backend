@@ -15,6 +15,10 @@ describe('User CRUD Endpoints', () => {
     let userRoleId = 2;
 
     beforeAll(async () => {
+        // Limpiar datos previos (por si quedaron de ejecución fallida)
+        await query('DELETE FROM user WHERE email IN (?, ?)',
+            ['admin@test.com', 'user@test.com']);
+
         // Crear roles de prueba
         await query(`
             INSERT OR IGNORE INTO roles (id, name) VALUES 
@@ -58,7 +62,7 @@ describe('User CRUD Endpoints', () => {
 
     afterAll(async () => {
         // Limpiar datos de prueba
-        await query('DELETE FROM users WHERE email IN (?, ?, ?, ?)',
+        await query('DELETE FROM user WHERE email IN (?, ?, ?, ?)',
             ['admin@test.com', 'user@test.com', 'newuser@test.com', 'updated@test.com']);
         // No cerrar el pool aquí, lo hace setup.js
     });
@@ -66,7 +70,7 @@ describe('User CRUD Endpoints', () => {
     afterEach(async () => {
         // Limpiar usuarios de prueba creados durante los tests
         if (testUserId) {
-            await query('DELETE FROM users WHERE id = ?', [testUserId]);
+            await query('DELETE FROM user WHERE id = ?', [testUserId]);
             testUserId = null;
         }
     });
@@ -352,6 +356,9 @@ describe('User CRUD Endpoints', () => {
 
     describe('DELETE /api/users/:id', () => {
         beforeEach(async () => {
+            // Limpiar usuario previo por si quedó de ejecución fallida
+            await query('DELETE FROM user WHERE email = ?', ['delete@test.com']);
+
             // Crear usuario para eliminar
             testUserId = generateUUID();
             await User.create({
@@ -361,6 +368,14 @@ describe('User CRUD Endpoints', () => {
                 password: 'password123',
                 roles_id: userRoleId
             });
+        });
+
+        afterEach(async () => {
+            // Limpiar usuario de prueba si no fue eliminado en el test
+            if (testUserId) {
+                await query('DELETE FROM user WHERE id = ?', [testUserId]);
+                testUserId = null;
+            }
         });
 
         it('should delete user as admin', async () => {
